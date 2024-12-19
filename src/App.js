@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000";
+// Change to your actual production URL
+const SOCKET_URL = "https://chat-realtime-app-production.up.railway.app/";
+//const SOCKET_URL = "http://localhost:5000";
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -14,7 +16,14 @@ function App() {
   const [isJoined, setIsJoined] = useState(!!localStorage.getItem("username"));
 
   useEffect(() => {
-    const newSocket = io(SOCKET_URL);
+    const newSocket = io(SOCKET_URL, {
+      withCredentials: false, // No credentials needed
+      transports: ["websocket", "polling"], // Fallback to polling if websocket fails
+      reconnectionAttempts: 5, // Retry logic in case of failure
+      reconnectionDelay: 1000, // Delay before retry
+      reconnectionDelayMax: 5000, // Max delay between reconnections
+    });
+
     setSocket(newSocket);
 
     if (localStorage.getItem("username")) {
@@ -83,7 +92,6 @@ function App() {
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>Real-Time Chat App</h1>
-
       {!isJoined ? (
         <div>
           <input
@@ -97,7 +105,6 @@ function App() {
       ) : (
         <div>
           <h2>Welcome, {username}!</h2>
-
           <div
             style={{
               border: "1px solid #ccc",
@@ -112,7 +119,6 @@ function App() {
               </div>
             ))}
           </div>
-
           <div>
             <strong>Active Users:</strong>
             <ul>
@@ -121,7 +127,6 @@ function App() {
               ))}
             </ul>
           </div>
-
           <input
             type="text"
             placeholder="Enter your message"
